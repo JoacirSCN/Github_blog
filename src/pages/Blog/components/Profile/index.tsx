@@ -3,39 +3,81 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { faBuilding, faUserGroup } from '@fortawesome/free-solid-svg-icons'
 import { ExternalLink } from '../../../../components/ExternalLink'
 import { ProfileContainer, ProfileDetails, ProfilePicture } from './styles'
+import { useCallback, useEffect, useState } from 'react'
+import { api } from '../../../../lib/axios'
+import { Spinner } from '../../../../components/Spinner'
+
+const username = import.meta.env.VITE_GITHUB_USERNAME
+
+interface ProfileData {
+  login: string
+  name: string
+  bio: string
+  avatar_url: string
+  html_url: string
+  company?: string
+  followers: number
+}
 
 export function Profile() {
+  const [profileData, setProfileData] = useState<ProfileData>({} as ProfileData)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const getProfileData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const response = await api.get(`/users/${username}`)
+
+      setProfileData(response.data)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [profileData])
+
+  useEffect(() => {
+    getProfileData()
+  }, [])
+
   return (
     <ProfileContainer>
-      <ProfilePicture src="https://github.com/JoacirSCN.png" />
-      <ProfileDetails>
-        <header>
-          <h1>Joacir Sampaio</h1>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <ProfilePicture src={profileData.avatar_url} />
+          <ProfileDetails>
+            <header>
+              <h1>{profileData.name}</h1>
 
-          <ExternalLink text="github" href />
-        </header>
+              <ExternalLink
+                text="Github"
+                href={profileData.html_url}
+                target="_blank"
+              />
+            </header>
 
-        <p>
-          Tristique volutpat pulvinar vel massa, pellentesque egestas. Eu
-          viverra massa quam dignissim aenean malesuada suscipit. Nunc, volutpat
-          pulvinar vel mass.
-        </p>
+            <p>{profileData.bio}</p>
 
-        <ul>
-          <li>
-            <FontAwesomeIcon icon={faGithub}></FontAwesomeIcon>
-            JoacirSCN
-          </li>
-          <li>
-            <FontAwesomeIcon icon={faBuilding} />
-            Prazeres, Jaboatão dos Guararapes - PE
-          </li>
-          <li>
-            <FontAwesomeIcon icon={faUserGroup} />
-            123
-          </li>
-        </ul>
-      </ProfileDetails>
+            <ul>
+              <li>
+                <FontAwesomeIcon icon={faGithub}></FontAwesomeIcon>
+                {profileData.login}
+              </li>
+              {profileData?.company && (
+                <li>
+                  <FontAwesomeIcon icon={faBuilding} />
+                  {profileData.company}
+                </li>
+              )}
+
+              <li>
+                <FontAwesomeIcon icon={faUserGroup} />
+                {profileData.followers}
+              </li>
+            </ul>
+          </ProfileDetails>
+        </>
+      )}
     </ProfileContainer>
   )
 }

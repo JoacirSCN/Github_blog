@@ -9,12 +9,7 @@ type ExternalLinkProps = ComponentProps<typeof ExternalLinkContainer> & {
   variant?: 'iconLeft'
 }
 
-export function ExternalLink({
-  text,
-  icon,
-  variant,
-  ...rest
-}: ExternalLinkProps) {
+export function ExternalLink({ text, icon, ...rest }: ExternalLinkProps) {
   return (
     <ExternalLinkContainer {...rest}>
       {text}
